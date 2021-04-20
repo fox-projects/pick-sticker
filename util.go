@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	g "github.com/AllenDang/giu"
+	"github.com/cli/safeexec"
 )
 
 func handle(err error) {
@@ -24,7 +25,11 @@ func chooseDirDialog() string {
 
 func copyFile(file string) {
 	go func() {
-		cmd := exec.Command("sh", "-c", fmt.Sprintf("convert %s -resize 100x100 - | xclip -selection clipboard -target image/png", file))
+		// https://github.com/golang/go/issues/43724
+		shBin, err := safeexec.LookPath("sh")
+		handle(err)
+
+		cmd := exec.Command(shBin, "-c", fmt.Sprintf("convert %s -resize 100x100 - | xclip -selection clipboard -target image/png", file))
 		// cmd := exec.Command("xclip", "-selection", "clipboard", "-target", "image/png", file)
 		output, err := cmd.CombinedOutput()
 		if err != nil {

@@ -6,6 +6,7 @@ require (
 	github.com/AllenDang/giu v0.5.3
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
+	github.com/cli/safeexec v1.0.0 // indirect
 	github.com/go-resty/resty/v2 v2.3.0 // indirect
 	github.com/go-vgo/robotgo v0.93.1 // indirect
 	github.com/pelletier/go-toml v1.9.0 // indirect
