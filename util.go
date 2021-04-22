@@ -30,7 +30,6 @@ func copyFile(file string) {
 		handle(err)
 
 		cmd := exec.Command(shBin, "-c", fmt.Sprintf("convert %s -resize 100x100 - | xclip -selection clipboard -target image/png", file))
-		// cmd := exec.Command("xclip", "-selection", "clipboard", "-target", "image/png", file)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println(err)
