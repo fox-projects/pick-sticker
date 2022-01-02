@@ -1,6 +1,6 @@
 # pick-sticker-downloader
 
-Contains a convenient downloader that pulls all the stickers available from [Pulex's site](https://www.pulexart.com). I wish to acknowledge [this sticker downloader](https://github.com/Cartmanishere/telegram-sticker-downloader) for making it easier to write this program
+A convenient downloader that pulls all the stickers available from [Pulex's site](https://www.pulexart.com). I wish to acknowledge [this sticker downloader](https://github.com/Cartmanishere/telegram-sticker-downloader) for making it easier to write this program
 
 ## Usage
 

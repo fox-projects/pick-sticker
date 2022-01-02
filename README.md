@@ -1,9 +1,9 @@
 # sticker-selector
 
-WIP cross-platform sticker selector using a [Go Port](https://github.com/AllenDang/giu) of Dear ImGui
+Specialied application for using sticker sets. Made with [Raylib](https://www.raylib.com)
 
-For now, only works on linux and requires `xclip` and ImageMagick's `convert` tool in PATH. Hacky and broken. Docs TODO
+Status: In development
 
-## Preview
+# Preview
 
-![Screenshot](assets/screenshot.png)
+![Preview Image of Application](./assets/preview.png)
