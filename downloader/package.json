@@ -1,0 +1,14 @@
+{
+	"name": "pick-sticker-downloader",
+	"description": "Pulls all stickers from Pulex's website",
+	"license": "BSD-3-Clause",
+	"private": true,
+	"type": "module",
+	"main": "index.js",
+	"dependencies": {
+		"ansi-colors": "^4.1.1",
+		"dotenv": "^10.0.0",
+		"node-fetch": "^3.1.0",
+		"ora": "^6.0.1"
+	}
+}
