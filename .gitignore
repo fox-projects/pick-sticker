@@ -1,2 +1,6 @@
 .env
 .vscode/
+out/
+
+# c
+*.o
