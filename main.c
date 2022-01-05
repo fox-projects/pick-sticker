@@ -116,12 +116,12 @@ int main() {
   const int windowWidth = (gridColumns * (imageSizeTotal)) + (windowBorder * 2);
   const int windowHeight = 778 + windowBorder;
 
-  const struct Vector2 gridStart = (Vector2){ windowBorder, 80 };
+  const Vector2 gridStart = (Vector2){ windowBorder, 80 };
 
-  const struct Color colorBlack = (Color){ 52, 58, 64, 255 };
-  const struct Color colorLightGray = (Color){ 233, 236, 239, 255 };
-  const struct Color colorDarkGray = (Color){ 173, 181, 189, 255 };
-  const struct Color colorWhite = WHITE;
+  const Color colorBlack = (Color){ 52, 58, 64, 255 };
+  const Color colorLightGray = (Color){ 233, 236, 239, 255 };
+  const Color colorDarkGray = (Color){ 173, 181, 189, 255 };
+  const Color colorWhite = WHITE;
 
   /* start */
   InitWindow(windowWidth, windowHeight, "Pick Sticker");
@@ -160,9 +160,9 @@ int main() {
   ImageResize(&settingsImage, 50, 50);
   Texture2D settingsTexture = LoadTextureFromImage(settingsImage);
 
-  struct Vector2 imageSelectedVector = (Vector2){ 0, 0 };
+  Vector2 imageSelectedVector = (Vector2){ 0, 0 };
 
-  struct Vector2 mousePosition;
+  Vector2 mousePosition;
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -214,7 +214,7 @@ int main() {
     DrawTexture(settingsTexture, windowWidth - 50, 0, colorWhite);
 
     /* selection rectangle */
-    struct Rectangle selectionRectangle = (Rectangle){
+    Rectangle selectionRectangle = (Rectangle){
       (gridStart.x + (imageSizeTotal * imageSelectedVector.x)),
       (gridStart.y + (imageSizeTotal * imageSelectedVector.y)),
       imageSizeTotal,
@@ -223,6 +223,7 @@ int main() {
     DrawRectangleRounded(selectionRectangle, 0.3f, 0, colorLightGray);
     DrawRectangleRoundedLines(selectionRectangle, 0.3f, 0, 1, colorDarkGray);
 
+    /* actual images */
     for(int rowN = 0; rowN < gridRows; rowN++) {
       for(int columnN = 0; columnN < gridColumns; columnN++) {
         int index = (rowN * gridColumns) + columnN;
@@ -232,6 +233,7 @@ int main() {
       }
     }
 
+    /* settings */
     // if (CheckCollisionPointRec(mousePosition, ))
     // if(showSettings) {
 
