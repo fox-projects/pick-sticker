@@ -106,13 +106,14 @@ int main() {
 
   /* constants */
   const int imageSize = 100;
-  // const int imageMargin = 5; // TODO
+  const int imageMargin = 5;
+  const int imageSizeTotal = imageSize + (imageMargin * 2);
 
   const int gridColumns = 9;
   const int gridRows = 7;
 
   const int windowBorder = 5;
-  const int windowWidth = (gridColumns * imageSize) + (windowBorder * 2);
+  const int windowWidth = (gridColumns * (imageSizeTotal)) + (windowBorder * 2);
   const int windowHeight = 778 + windowBorder;
 
   const struct Vector2 gridStart = (Vector2){ windowBorder, 80 };
@@ -214,10 +215,10 @@ int main() {
 
     /* selection rectangle */
     struct Rectangle selectionRectangle = (Rectangle){
-      (gridStart.x + (imageSize * imageSelectedVector.x)),
-      (gridStart.y + (imageSize * imageSelectedVector.y)),
-      imageSize,
-      imageSize
+      (gridStart.x + (imageSizeTotal * imageSelectedVector.x)),
+      (gridStart.y + (imageSizeTotal * imageSelectedVector.y)),
+      imageSizeTotal,
+      imageSizeTotal
     };
     DrawRectangleRounded(selectionRectangle, 0.3f, 0, colorLightGray);
     DrawRectangleRoundedLines(selectionRectangle, 0.3f, 0, 1, colorDarkGray);
@@ -225,8 +226,8 @@ int main() {
     for(int rowN = 0; rowN < gridRows; rowN++) {
       for(int columnN = 0; columnN < gridColumns; columnN++) {
         int index = (rowN * gridColumns) + columnN;
-        int posX = gridStart.x + (imageSize * columnN);
-        int posY = gridStart.y + (imageSize * rowN);
+        int posX = gridStart.x + (imageSizeTotal * columnN) + imageMargin;
+        int posY = gridStart.y + (imageSizeTotal * rowN) + imageMargin;
         DrawTexture(shown_textures[index], posX, posY, colorWhite);
       }
     }

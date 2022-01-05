@@ -1,5 +1,9 @@
 # shellcheck shell=bash
 
+task.run() {
+	make run
+}
+
 task.convert() {
 	bake.assert_cmd 'inkscape'
 
