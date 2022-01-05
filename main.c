@@ -26,6 +26,14 @@ _Noreturn static void die(char *msg) {
   exit(1);
 }
 
+[[gnu::pure]] static inline int get_columnN_from_mouse(Vector2 mousePosition, int imageSizeTotal) {
+  return (int)mousePosition.x / imageSizeTotal;
+}
+
+[[gnu::pure]] static inline int get_rowN_from_mouse(Vector2 mousePosition, int imageSizeTotal, int menuBarHeight) {
+  return ((int)mousePosition.y - menuBarHeight) / imageSizeTotal;
+}
+
 /**
  * @brief Determine if a string ends with a specific file extension
  */
@@ -112,9 +120,10 @@ int main() {
   const int gridColumns = 9;
   const int gridRows = 7;
 
+  const int menuBarHeight = 80;
   const int windowBorder = 5;
   const int windowWidth = (gridColumns * (imageSizeTotal)) + (windowBorder * 2);
-  const int windowHeight = 778 + windowBorder;
+  const int windowHeight = menuBarHeight + (gridRows * (imageSizeTotal)) + windowBorder;
 
   const Vector2 gridStart = (Vector2){ windowBorder, 80 };
 
@@ -155,37 +164,41 @@ int main() {
   int showSettings = false;
 
   /* load other things into memory */
-  Font fontTtf = LoadFontEx("./assets/rubik/Rubik-Bold.ttf", 80, 0, 250);
+  Font fontTtf = LoadFontEx("./assets/rubik/Rubik-Bold.ttf", menuBarHeight, 0, 250);
   Image settingsImage = LoadImage("./assets/feather/settings.png");
   ImageResize(&settingsImage, 50, 50);
   Texture2D settingsTexture = LoadTextureFromImage(settingsImage);
 
   Vector2 imageSelectedVector = (Vector2){ 0, 0 };
 
-  Vector2 mousePosition;
+  Vector2 mousePosition, mouseDelta;
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
     mousePosition = GetMousePosition();
+    mouseDelta = GetMouseDelta();
 
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K) || IsKeyPressed(KEY_W)) {
       if (imageSelectedVector.y > 0) {
         imageSelectedVector.y--;
       }
-    } else if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_L) || IsKeyPressed(KEY_D)) {
-      if(imageSelectedVector.x < gridColumns - 1) {
+    }
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_L) || IsKeyPressed(KEY_D)) {
+      if (imageSelectedVector.x < gridColumns - 1) {
         imageSelectedVector.x++;
       } else if (imageSelectedVector.y != gridRows - 1) {
         imageSelectedVector.y++;
         imageSelectedVector.x = 0;
       }
-    } else if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J) || IsKeyPressed(KEY_S)) {
+    }
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J) || IsKeyPressed(KEY_S)) {
       if (imageSelectedVector.y < gridRows - 1) {
         imageSelectedVector.y++;
       }
-    } else if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_H) || IsKeyPressed(KEY_A)) {
+    }
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_H) || IsKeyPressed(KEY_A)) {
       if(imageSelectedVector.x > 0) {
         imageSelectedVector.x--;
       } else if (imageSelectedVector.y != 0) {
@@ -193,8 +206,7 @@ int main() {
         imageSelectedVector.x = gridColumns - 1;
       }
     }
-
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (IsKeyPressed(KEY_ENTER) || IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
       // TODO: size
       char cmd[200];
 
@@ -214,6 +226,17 @@ int main() {
     DrawTexture(settingsTexture, windowWidth - 50, 0, colorWhite);
 
     /* selection rectangle */
+    if (abs((int)mouseDelta.x) >= 1 || abs((int)mouseDelta.y) >= 1) {
+      // columnN and rowN are indexed starting from zero
+      int columnN = get_columnN_from_mouse(mousePosition, imageSizeTotal);
+      int rowN = get_rowN_from_mouse(mousePosition, imageSizeTotal, menuBarHeight);
+      if (columnN < gridColumns) {
+        imageSelectedVector.x = columnN;
+      }
+      if (rowN < gridRows) {
+        imageSelectedVector.y = rowN;
+      }
+    }
     Rectangle selectionRectangle = (Rectangle){
       (gridStart.x + (imageSizeTotal * imageSelectedVector.x)),
       (gridStart.y + (imageSizeTotal * imageSelectedVector.y)),
