@@ -108,12 +108,12 @@ int main() {
   const int imageSize = 100;
   // const int imageMargin = 5; // TODO
 
-  const int gridColumns = 5;
+  const int gridColumns = 9;
   const int gridRows = 7;
 
   const int windowBorder = 5;
   const int windowWidth = (gridColumns * imageSize) + (windowBorder * 2);
-  const int windowHeight = 782;
+  const int windowHeight = 778 + windowBorder;
 
   const struct Vector2 gridStart = (Vector2){ windowBorder, 80 };
 
@@ -125,10 +125,10 @@ int main() {
   /* start */
   InitWindow(windowWidth, windowHeight, "Pick Sticker");
 
+  /* load images and their attributes into memory */
   #define SHOWN_LENGTH 100
   char* shown_files[SHOWN_LENGTH];
   Texture2D shown_textures[SHOWN_LENGTH];
-
   FILE *index_file = fopen("./index_file", "r");
   char *line = NULL;
   size_t len = 0;
@@ -150,14 +150,24 @@ int main() {
   fclose(index_file);
   free(line);
 
+  /* Settings popup */
+  int showSettings = false;
+
+  /* load other things into memory */
   Font fontTtf = LoadFontEx("./assets/rubik/Rubik-Bold.ttf", 80, 0, 250);
+  Image settingsImage = LoadImage("./assets/feather/settings.png");
+  ImageResize(&settingsImage, 50, 50);
+  Texture2D settingsTexture = LoadTextureFromImage(settingsImage);
 
   struct Vector2 imageSelectedVector = (Vector2){ 0, 0 };
 
+  struct Vector2 mousePosition;
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
+
+    mousePosition = GetMousePosition();
 
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K) || IsKeyPressed(KEY_W)) {
       if (imageSelectedVector.y > 0) {
@@ -190,20 +200,17 @@ int main() {
       int index = (imageSelectedVector.y * gridColumns) + imageSelectedVector.x;
       char *name = shown_files[index];
 
-      // xsel not always installed; ignore possibility of command injection
-      printf("INDEX: %d\n", index);
+      // ignore possibility of command injection
       sprintf(cmd, "xclip -selection clipboard -target image/png -i \"%s\"", name);
-      printf("CMD %s\n", cmd);
-
-      if (!system(cmd)) {
-        printf("%s\n", strerror(errno));
-        // die(strerror(errno));
+      if (system(cmd) != 0) {
+        die(strerror(errno));
       }
     }
 
     /* heading */
     DrawTextEx(fontTtf, "Pick Sticker", (Vector2){ 0.0f, -5.0f }, (float)fontTtf.baseSize, 2, colorBlack);
     DrawRectangle(0, (float)fontTtf.baseSize - 10, 430, 4, colorBlack);
+    DrawTexture(settingsTexture, windowWidth - 50, 0, colorWhite);
 
     /* selection rectangle */
     struct Rectangle selectionRectangle = (Rectangle){
@@ -218,12 +225,16 @@ int main() {
     for(int rowN = 0; rowN < gridRows; rowN++) {
       for(int columnN = 0; columnN < gridColumns; columnN++) {
         int index = (rowN * gridColumns) + columnN;
-        // printf("AAA: %i\n", index);
         int posX = gridStart.x + (imageSize * columnN);
         int posY = gridStart.y + (imageSize * rowN);
         DrawTexture(shown_textures[index], posX, posY, colorWhite);
       }
     }
+
+    // if (CheckCollisionPointRec(mousePosition, ))
+    // if(showSettings) {
+
+    // }
 
     EndDrawing();
   }

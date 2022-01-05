@@ -5,5 +5,5 @@ CFLAGS = $(LDFLAGS) $(LDLIBS) -g -Wpedantic -Werror -Wno-unused-command-line-arg
 LDFLAGS ::= -L./third_party/raylib/lib
 LDLIBS ::= -lraylib -lm
 
-run: main.o
+run: ./out/main
 	$(CC) $(CFLAGS) -o ./out/main ./main.c && LD_LIBRARY_PATH="$$PWD/third_party/raylib/lib" ./out/main

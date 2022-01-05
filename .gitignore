@@ -2,5 +2,4 @@
 .vscode/
 out/
 
-# c
-*.o
+assets/feather/*.png
