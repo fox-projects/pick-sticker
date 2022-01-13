@@ -19,15 +19,26 @@ function error(
 	/** @type {string} */ msg,
 	/** @type {Record<string, any>[] | undefined} */ ...data
 ) {
-	console.info()
-	console.error(`${c.red('Error')} ${msg}`)
+	console.error(`${c.red('Error')}: ${msg}`)
 	if (data !== void 0) {
 		console.error(`${c.red('Data')}`, data)
 	}
 }
 
 function info(/** @type {string} */ msg) {
-	console.info(`${c.blue('Info')} ${msg}`)
+	console.info(`${c.blue('Info')}: ${msg}`)
+}
+
+function spinnerFactory(/** @type {string} */ msg) {
+	const spinner = ora(msg)
+	spinner.start()
+
+	return {
+		stop() {
+			spinner.stop()
+			console.info(`✔️ ${msg}`)
+		},
+	}
 }
 
 function chunkInto(
@@ -41,26 +52,6 @@ function chunkInto(
 	}
 
 	return res
-}
-
-/**
- * @async
- */
-function log(
-	/** @type {string} */ msg,
-	/** @type {Record<string, any>[] | undefined} */ ...data
-) {
-	return fs.promises.appendFile(
-		'log.txt',
-		JSON.stringify(
-			{
-				msg,
-				data,
-			},
-			null,
-			2
-		)
-	)
 }
 
 async function mkdirp(/** @type {fs.PathLike} */ dir) {
@@ -102,13 +93,12 @@ async function downloadStickerSet(/** @type {string} */ stickerSetName) {
 	// Now, we have each image to download of a particular sticker pack
 	// Commence even more downloads!
 
-	fileObjects.map((item) => {
+	return fileObjects.map((item) => {
 		return new Promise(async (resolve, reject) => {
 			if (!item.ok) reject(`Item not ok: ${JSON.stringify(item, null, 2)}`)
 
-			// WET BRAVO
 			const fileName = path.basename(item.result.file_path)
-			const filePath = path.join(`downloads/${stickerSetName}/${fileName}`)
+			const filePath = path.join(DOWNLOADS_DIR, `${stickerSetName}/${fileName}`)
 			try {
 				await mkdirp(path.dirname(filePath))
 
@@ -142,6 +132,7 @@ async function downloadStickerSet(/** @type {string} */ stickerSetName) {
 /* ------------------------------------------------------ */
 /*                          START                         */
 /* ------------------------------------------------------ */
+const DOWNLOADS_DIR = '../downloads'
 
 /* Read dotenv */
 dotenv.config()
@@ -152,7 +143,9 @@ if (!telegram_token) {
 
 /* Test telegram_token */
 {
+	const s = spinnerFactory('Testing authentication token')
 	const res = await fetch(`https://api.telegram.org/bot${telegram_token}/getMe`)
+	s.stop()
 	const json = await res.json()
 	if (!json.ok) {
 		die('Telegram authentication failed', json)
@@ -162,40 +155,38 @@ if (!telegram_token) {
 /** @type {Array<string>} */
 let stickerSets = []
 {
+	const s = spinnerFactory('Fetching list of all sticker sets')
 	const res = await fetch('https://www.pulexart.com/stickers.html')
+	s.stop()
 	const text = await res.text()
-	const matches = [
+	stickerSets = [
 		...text.matchAll(/https:\/\/t\.me\/addstickers\/(?<id>.*?)['"]/gu),
-	]
-	stickerSets = matches.map((item) => item.groups.id)
+	].map((item) => item.groups.id)
 }
 
 if (stickerSets.length === 0) {
-	die("Could not retrieve list of sticker sets from the Pulex's site")
+	die("Could not retrieve list of sticker sets from Pulex's site")
 }
 
 info(`Downloading ${stickerSets.length} sticker sets...`)
 for (const chunk of chunkInto(stickerSets, 20)) {
-	const stickerSetNames = JSON.stringify(chunk)
-	const spinner = ora(`Downloading ${stickerSetNames}`)
-	spinner.start()
+	const s = spinnerFactory(`Downloading ${JSON.stringify(chunk)}`)
 
 	const promises = []
 	for (const stickerSet of chunk) {
+		// Skip if sticker set already exists
 		try {
-			// WET BRAVO
-			await fs.promises.stat(path.join('downloads', stickerSet))
+			await fs.promises.stat(path.join(DOWNLOADS_DIR, stickerSet))
 			continue
 		} catch (err) {
 			if (err.code !== 'ENOENT') throw err
 		}
 
-		promises.push(downloadStickerSet(stickerSet))
+		promises.concat(await downloadStickerSet(stickerSet))
 	}
 
 	await Promise.all(promises)
 
-	spinner.stop()
-	info(`Downloaded ${stickerSetNames}`)
+	s.stop()
 }
 info('Done.')

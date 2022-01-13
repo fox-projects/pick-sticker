@@ -1,9 +1,10 @@
 #!/usr/bin/make -f
 
-CC ::= clang
-CFLAGS = $(LDFLAGS) $(LDLIBS) -g -Wpedantic -Werror -Wno-unused-command-line-argument -std=gnu2x
+CC ::= gcc
+CFLAGS = $(LDFLAGS) $(LDLIBS) -g -Wpedantic -Wno-unused-command-line-argument -std=gnu2x -I./third_party/raylib/include
 LDFLAGS ::= -L./third_party/raylib/lib
 LDLIBS ::= -lraylib -lm
 
-run: ./out/main
+.PHONY: run
+run:
 	$(CC) $(CFLAGS) -o ./out/main ./main.c && LD_LIBRARY_PATH="$$PWD/third_party/raylib/lib" ./out/main

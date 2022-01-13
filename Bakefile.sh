@@ -1,19 +1,15 @@
 # shellcheck shell=bash
 
-task.run() {
-	make run
+task.download() {
+	bake.assert_cmd 'node'
+
+	cd ./downloader
+	node index.js
 }
 
-task.convert() {
-	bake.assert_cmd 'inkscape'
+task.generate_sizes() {
+	bake.assert_cmd 'poetry'
 
-	cd ./assets/feather
-	for svg_file in *.svg; do
-		local png_file="${svg_file%.svg}.png"
-
-		bake.info "Processing file '$svg_file'"
-
-		rm -f "$png_file"
-		inkscape -w 100 -h 100 "$svg_file" -o "$png_file"
-	done
+	cd ./resizer
+	poetry run ./main.py
 }

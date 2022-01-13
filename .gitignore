@@ -2,4 +2,5 @@
 .vscode/
 out/
 
+downloads/
 assets/feather/*.png

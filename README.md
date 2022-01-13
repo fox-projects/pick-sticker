@@ -7,3 +7,7 @@ Status: In development
 # Preview
 
 ![Preview Image of Application](./assets/preview.png)
+
+## TODO
+
+- Use [cosmopolitan](https://justine.lol/cosmopolitan)
