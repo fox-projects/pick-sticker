@@ -1,5 +1,5 @@
-#include "./third_party/raylib/include/raylib.h"
 #include <stdio.h>
+
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
@@ -8,6 +8,10 @@
 #include <stdnoreturn.h>
 #include <stdbool.h>
 #include  <errno.h>
+
+#include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
 // lmfao
 #define LOAD(_n, _file) const char *file##_n = _file; \
@@ -26,6 +30,10 @@ _Noreturn static void die(char *msg) {
   exit(1);
 }
 
+static inline void draw_tab_button() {
+
+}
+
 [[gnu::pure]] static inline int get_columnN_from_mouse(Vector2 mousePosition, int imageSizeTotal) {
   return (int)mousePosition.x / imageSizeTotal;
 }
@@ -39,9 +47,9 @@ _Noreturn static void die(char *msg) {
  */
 static inline bool has_extension(const char *name, const char *ext)
 {
-  size_t nl = strlen(name);
-  size_t el = strlen(ext);
-  return nl >= el && !strcmp(name + nl - el, ext);
+  size_t name_length = strlen(name);
+  size_t ext_length = strlen(ext);
+  return name_length >= ext_length && !strcmp(name + name_length - ext_length, ext);
 }
 
 /**
@@ -65,7 +73,7 @@ static void create_index(char* index_file_name, char *search_dir) {
 
         char s[PATH_MAX];
         strcpy(s, search_dir);
-        strncat(s, "/", 1);
+        strcat(s, "/");
         strcat(s, dir->d_name);
 
         DIR *subd = opendir(s);
@@ -76,23 +84,25 @@ static void create_index(char* index_file_name, char *search_dir) {
 
               char ss[PATH_MAX];
               strcpy(ss, s);
-              strncat(ss, "/", 1);
+              strcat(ss, "/");
               strcat(ss, subdir->d_name);
 
               if (has_extension(ss, ".png")) {
-                fprintf(index_file, "%s:\n", ss);
+                if (strstr(ss, "_small.png") == NULL) {
+                  fprintf(index_file, "%s:\n", ss);
+                }
               }
             }
           }
           closedir(subd);
         } else {
-          fprintf(stderr, "%s\n", "Unexpected NULL pointer");
+          die("Unexpected NULL pointer");
         }
       }
     }
     closedir(d);
   } else {
-    fprintf(stderr, "%s\n", "Unexpected NULL pointer");
+    die("Unexpected NULL pointer");
   }
 
   fclose(index_file);
@@ -110,7 +120,7 @@ static Texture2D get_texture(const char *file, const int imageSize) {
 
 int main() {
   /* create index */
-  create_index("./index_file", "./downloader/downloads");
+  create_index("./out/index_file", "./downloads");
 
   /* constants */
   const int imageSize = 100;
@@ -120,12 +130,12 @@ int main() {
   const int gridColumns = 9;
   const int gridRows = 7;
 
-  const int menuBarHeight = 80;
+  const int menuBarHeight = 60;
   const int windowBorder = 5;
   const int windowWidth = (gridColumns * (imageSizeTotal)) + (windowBorder * 2);
   const int windowHeight = menuBarHeight + (gridRows * (imageSizeTotal)) + windowBorder;
 
-  const Vector2 gridStart = (Vector2){ windowBorder, 80 };
+  const Vector2 gridStart = (Vector2){ windowBorder, menuBarHeight - 5 };
 
   const Color colorBlack = (Color){ 52, 58, 64, 255 };
   const Color colorLightGray = (Color){ 233, 236, 239, 255 };
@@ -133,22 +143,26 @@ int main() {
   const Color colorWhite = WHITE;
 
   /* start */
+  SetTraceLogLevel(LOG_ERROR);
   InitWindow(windowWidth, windowHeight, "Pick Sticker");
 
   /* load images and their attributes into memory */
   #define SHOWN_LENGTH 100
   char* shown_files[SHOWN_LENGTH];
   Texture2D shown_textures[SHOWN_LENGTH];
-  FILE *index_file = fopen("./index_file", "r");
+  FILE *index_file = fopen("./out/index_file", "r");
   char *line = NULL;
   size_t len = 0;
   ssize_t read;
   int i = 0;
   while ((read = getline(&line, &len, index_file)) != -1) {
     char* image_file = strtok(line, ":");
+    if (image_file == NULL) {
+      continue;
+    }
 
     if (i < SHOWN_LENGTH) {
-      char* image_file_copy = (char *)calloc(strlen(image_file), sizeof(char));
+      char* image_file_copy = (char *)calloc(strlen(image_file)+1, sizeof(char));
       strcpy(image_file_copy, image_file);
 
       shown_files[i] = image_file_copy;
@@ -160,18 +174,26 @@ int main() {
   fclose(index_file);
   free(line);
 
-  /* Settings popup */
-  int showSettings = false;
+  /* all variables */
+  Vector2 mousePosition, mouseDelta;
+  int currentTab = 0;
+  enum tabs { TAB_PICKER, TAB_SETTINGS };
 
-  /* load other things into memory */
-  Font fontTtf = LoadFontEx("./assets/rubik/Rubik-Bold.ttf", menuBarHeight, 0, 250);
+
+  /* for title bar */
+  Font fontTtf = LoadFontEx("./assets/rubik/Rubik-Bold.ttf", menuBarHeight, NULL, 0);
+  Font smallFontTtf = LoadFontEx("./assets/rubik/Rubik-Medium.ttf", 30, NULL, 0);
   Image settingsImage = LoadImage("./assets/feather/settings.png");
   ImageResize(&settingsImage, 50, 50);
   Texture2D settingsTexture = LoadTextureFromImage(settingsImage);
 
+  /* for image tab */
   Vector2 imageSelectedVector = (Vector2){ 0, 0 };
 
-  Vector2 mousePosition, mouseDelta;
+  /* misc */
+  GuiSetFont(smallFontTtf);
+  char text[128] = "Text";
+
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -180,12 +202,53 @@ int main() {
     mousePosition = GetMousePosition();
     mouseDelta = GetMouseDelta();
 
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_K) || IsKeyPressed(KEY_W)) {
+    /* heading */
+    char *titleText = "Pick Sticker";
+    DrawTextEx(fontTtf, titleText, (Vector2){ 0.0f, -5.0F }, (float)fontTtf.baseSize, 0, colorBlack);
+    DrawRectangle(
+      windowBorder - 1,
+      (float)fontTtf.baseSize - 14,
+      MeasureTextEx(fontTtf, titleText, (float)fontTtf.baseSize, 0).x - 5, // TODO: cache
+      4,
+      colorBlack
+    );
+    if (currentTab == TAB_PICKER) {
+      Rectangle inputRec = (Rectangle){
+        MeasureTextEx(fontTtf, "Pick Sticker", (float)fontTtf.baseSize, 0).x + 10, // TODO: cache
+        10,
+        200,
+        40
+      };
+      int value = 20;
+      GuiTextBox(inputRec, text, 18, true);
+    }
+    Rectangle tabPickerRec = (Rectangle){
+      windowWidth - 245, menuBarHeight - 47, 115, 35
+    };
+    Rectangle tabSettingsRec = (Rectangle){
+      windowWidth - 125, menuBarHeight - 47, 120, 35
+    };
+    GuiButton(tabPickerRec, "Picker");
+    GuiButton(tabSettingsRec, "Settings");
+
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+      if (CheckCollisionPointRec(mousePosition, tabPickerRec)) {
+        currentTab = TAB_PICKER;
+      } else if (CheckCollisionPointRec(mousePosition, tabSettingsRec)) {
+        currentTab = TAB_SETTINGS;
+      }
+    }
+
+    /* tabs */
+    #define IsKeyPressedWithAlt(_KEY) ((IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT)) && IsKeyPressed(_KEY))
+
+    if (currentTab == TAB_PICKER) {
+    if (IsKeyPressed(KEY_UP) || IsKeyPressedWithAlt(KEY_K)) {
       if (imageSelectedVector.y > 0) {
         imageSelectedVector.y--;
       }
     }
-    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_L) || IsKeyPressed(KEY_D)) {
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedWithAlt(KEY_L)) {
       if (imageSelectedVector.x < gridColumns - 1) {
         imageSelectedVector.x++;
       } else if (imageSelectedVector.y != gridRows - 1) {
@@ -193,12 +256,12 @@ int main() {
         imageSelectedVector.x = 0;
       }
     }
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_J) || IsKeyPressed(KEY_S)) {
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressedWithAlt(KEY_J)) {
       if (imageSelectedVector.y < gridRows - 1) {
         imageSelectedVector.y++;
       }
     }
-    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_H) || IsKeyPressed(KEY_A)) {
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressedWithAlt(KEY_H)) {
       if(imageSelectedVector.x > 0) {
         imageSelectedVector.x--;
       } else if (imageSelectedVector.y != 0) {
@@ -218,23 +281,21 @@ int main() {
       if (system(cmd) != 0) {
         die(strerror(errno));
       }
+      exit(0);
     }
-
-    /* heading */
-    DrawTextEx(fontTtf, "Pick Sticker", (Vector2){ 0.0f, -5.0f }, (float)fontTtf.baseSize, 2, colorBlack);
-    DrawRectangle(0, (float)fontTtf.baseSize - 10, 430, 4, colorBlack);
-    DrawTexture(settingsTexture, windowWidth - 50, 0, colorWhite);
 
     /* selection rectangle */
     if (abs((int)mouseDelta.x) >= 1 || abs((int)mouseDelta.y) >= 1) {
       // columnN and rowN are indexed starting from zero
       int columnN = get_columnN_from_mouse(mousePosition, imageSizeTotal);
       int rowN = get_rowN_from_mouse(mousePosition, imageSizeTotal, menuBarHeight);
-      if (columnN < gridColumns) {
-        imageSelectedVector.x = columnN;
-      }
-      if (rowN < gridRows) {
-        imageSelectedVector.y = rowN;
+      if (mousePosition.y > menuBarHeight - 5) {
+        if (columnN < gridColumns) {
+          imageSelectedVector.x = columnN;
+        }
+        if (rowN < gridRows) {
+          imageSelectedVector.y = rowN;
+        }
       }
     }
     Rectangle selectionRectangle = (Rectangle){
@@ -256,16 +317,15 @@ int main() {
       }
     }
 
-    /* settings */
-    // if (CheckCollisionPointRec(mousePosition, ))
-    // if(showSettings) {
 
-    // }
+    } else if (currentTab == TAB_SETTINGS) {
+
+    }
 
     EndDrawing();
   }
 
-  for(int i = 0; i < (sizeof(shown_files) / sizeof(shown_files[0])); ++i) {
+  for (int i = 0; i < (sizeof(shown_files) / sizeof(shown_files[0])); ++i) {
     free(shown_files[i]);
   }
 
