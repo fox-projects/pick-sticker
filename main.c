@@ -162,7 +162,7 @@ int main() {
     }
 
     if (i < SHOWN_LENGTH) {
-      char* image_file_copy = (char *)calloc(strlen(image_file)+1, sizeof(char));
+      char* image_file_copy = calloc(strlen(image_file)+1, sizeof(char));
       strcpy(image_file_copy, image_file);
 
       shown_files[i] = image_file_copy;
