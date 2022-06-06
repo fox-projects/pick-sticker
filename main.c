@@ -276,8 +276,12 @@ int main() {
       int index = (imageSelectedVector.y * gridColumns) + imageSelectedVector.x;
       char *name = shown_files[index];
 
+      char *small_name = calloc(strlen(name)+6+1, sizeof(char));
+      strcpy(small_name, name);
+      strcpy(small_name+strlen(name)-4, "_small.png");
+
       // ignore possibility of command injection
-      sprintf(cmd, "xclip -selection clipboard -target image/png -i \"%s\"", name);
+      sprintf(cmd, "xclip -selection clipboard -target image/png -i \"%s\"", small_name);
       if (system(cmd) != 0) {
         die(strerror(errno));
       }

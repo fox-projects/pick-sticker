@@ -6,7 +6,7 @@ from colorama import init, Fore, Back, Style
 init()
 
 def info(msg: str) -> None:
-	print(f"{Fore.BLUE}Info{Fore.RESET}: {msg}")
+    print(f"{Fore.BLUE}Info:{Fore.RESET} {msg}")
 
 # -------------------------------------------------------- #
 #                           START                          #

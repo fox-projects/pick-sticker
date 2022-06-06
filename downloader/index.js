@@ -6,6 +6,7 @@ import fetch from 'node-fetch'
 import dotenv from 'dotenv'
 import c from 'ansi-colors'
 import ora from 'ora'
+import minimist from 'minimist'
 
 function die(
 	/** @type {string} */ msg,
@@ -39,6 +40,21 @@ function spinnerFactory(/** @type {string} */ msg) {
 			console.info(`✔️ ${msg}`)
 		},
 	}
+}
+
+async function doDiscord() {
+	const discord_token = process.env.DISCORD_TOKEN
+	if (!discord_token) {
+		die("Variable 'DISCORD_TOKEN' is empty")
+	}
+
+	const guildId = '741433237263351889'
+	const data = await fetch(`https://discordapp.com/api/v6/guilds/${guildId}`, {
+		headers: {
+			Authorization: discord_token,
+		},
+	})
+	console.info(await data.json())
 }
 
 function chunkInto(
@@ -136,6 +152,16 @@ const DOWNLOADS_DIR = '../downloads'
 
 /* Read dotenv */
 dotenv.config()
+
+const argv = minimist(process.argv.slice(2))
+if (argv.discord) {
+	await doDiscord()
+	process.exit(1)
+} else if (argv.telegram) {
+} else {
+	die('Must pass either --discord or --telegram')
+}
+
 const telegram_token = process.env.TELEGRAM_BOT_TOKEN
 if (!telegram_token) {
 	die("Variable 'TELEGRAM_BOT_TOKEN' is empty")

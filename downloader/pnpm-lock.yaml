@@ -3,6 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   ansi-colors: ^4.1.1
   dotenv: ^10.0.0
+  minimist: ^1.2.5
   node-fetch: ^3.1.0
   ora: ^6.0.1
 
@@ -11,6 +12,9 @@ dependencies:
   dotenv: 10.0.0
   node-fetch: 3.1.0
   ora: 6.0.1
+
+devDependencies:
+  minimist: 1.2.5
 
 packages:
 
@@ -156,6 +160,10 @@ packages:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
     dev: false
+
+  /minimist/1.2.5:
+    resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
+    dev: true
 
   /node-fetch/3.1.0:
     resolution: {integrity: sha512-QU0WbIfMUjd5+MUzQOYhenAazakV7Irh1SGkWCsRzBwvm4fAhzEUaHMJ6QLP7gWT6WO9/oH2zhKMMGMuIrDyKw==}
