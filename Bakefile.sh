@@ -1,16 +1,26 @@
 # shellcheck shell=bash
 
+task.browsec() {
+	cd ./browser-c
+	make
+}
+
+task.browseweb() {
+	cd ./browser-web
+	pnpm run dev
+}
+
 task.collect() {
-	cd collect
+	cd ./tools/collect
 	poetry run python main.py "$@"
 }
 
 task.download() {
-	cd ./downloader
+	cd ./tools/downloader
 	node index.js
 }
 
 task.generate_sizes() {
-	cd ./resizer
+	cd ./tools/resizer
 	poetry run ./main.py
 }

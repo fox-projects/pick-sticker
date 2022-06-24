@@ -1,0 +1,12 @@
+{
+  "name": "browser-web",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Edwin Kofler <edwin@kofler.dev> (https://edwinkofler.com/)",
+  "license": "BSD-3-Clause"
+}

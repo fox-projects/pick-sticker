@@ -5,5 +5,4 @@ out/
 downloads/
 assets/feather/*.png
 
-common/*
 .vscode/

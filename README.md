@@ -13,9 +13,9 @@ Status: In development
 ```sh
 git clone https://github.com/hyperupcall/pick-sticker
 cd ./pick-sticker
-bake collect
-bake download
-bake generate_sizes
+bake collect # Collect (search for) all Telegram Sticket Sets
+bake download # Download stickers from all collected Sticket Sets
+bake generate_sizes # Generate sizes
 make
 ```
 
